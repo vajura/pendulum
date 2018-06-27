@@ -1,10 +1,14 @@
 .canvas-wrapper {
-  width: 100%;
+  width: 100vw;
   height: auto;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-content: stretch;
+  align-items: center;
 }
 .overlaping-canvas {
-  position: absolute;
-  left: 0;
-  top: 0;
+  margin: auto;
 }
