@@ -24,7 +24,7 @@
       ],
       "scripts": [
         "./helpers/keydrown.js",
-        "./helpers/jquery.js"
+        "./helpers/create.js"
       ],
       "environmentSource": "environments/environment.ts",
       "environments": {

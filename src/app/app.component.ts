@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { NotificationService } from '../services/notification-service';
 declare var kd;
-declare var $;
+declare var createjs;
 
 @Component({
   selector: 'app-root',
@@ -15,7 +15,7 @@ export class AppComponent implements OnInit {
 
   width = 800;
   height = 800;
-  htmlContainer: any;
+  mainStage: any;
   mainContainer: any;
   mainCanvas: any;
   mainCtx: any;
@@ -27,10 +27,9 @@ export class AppComponent implements OnInit {
     setInterval(() => {
       kd.tick();
     }, 25);
-    this.htmlContainer = $('html');
-    this.mainContainer = $('#main-container');
+    this.mainContainer = document.getElementById('main-container');
     this.mainCanvas = <HTMLCanvasElement>document.getElementById('main-container');
     this.mainCtx = this.mainCanvas.getContext('2d');
-    // this.mainStage = new createjs.Stage('main-container');
+    this.mainStage = new createjs.Stage('main-container');
   }
 }
