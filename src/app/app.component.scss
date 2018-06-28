@@ -1,5 +1,6 @@
 .canvas-wrapper {
   width: 100vw;
+  min-height: 100vh;
   height: auto;
   position: relative;
   display: flex;
@@ -9,6 +10,13 @@
   align-content: stretch;
   align-items: center;
 }
+.centered-canvas {
+  position: relative;
+  width: 800px;
+  height: 800px;
+}
 .overlaping-canvas {
-  margin: auto;
+  position: absolute;
+  left: 0;
+  right: 0;
 }

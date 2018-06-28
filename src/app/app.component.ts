@@ -20,9 +20,12 @@ export class AppComponent implements OnInit, OnDestroy {
   width = 800;
   height = 800;
   mainStage: any;
-  mainContainer: any;
   mainCanvas: any;
   mainCtx: any;
+  backgroundCanvas: any;
+  backgroundCtx: any;
+  backgroundImageData: any;
+  backgroundData32: Uint32Array;
   pendulumLines: PendulumLine[] = [];
 
   constructor(private cdr: ChangeDetectorRef,
@@ -33,21 +36,21 @@ export class AppComponent implements OnInit, OnDestroy {
     this.kdTick = setInterval(() => {
       kd.tick();
     }, 25);
-    this.mainContainer = document.getElementById('main-container');
+    this.backgroundCanvas = <HTMLCanvasElement>document.getElementById('background-container');
+    this.backgroundCtx = this.backgroundCanvas.getContext('2d');
     this.mainCanvas = <HTMLCanvasElement>document.getElementById('main-container');
     this.mainCtx = this.mainCanvas.getContext('2d');
     this.mainStage = new createjs.Stage('main-container');
 
-    this.pendulumLines.push(new PendulumLine({x: 400, y: 400}, 150, 0, 1));
-    this.pendulumLines[0].addChild(100, 0 , -2);
-    this.pendulumLines[0].childLines[0].addChild(50, 0, 2);
-    this.pendulumLines[0].childLines[0].childLines[0].addChild(50, 0, 3, true);
-    this.pendulumLines[0].childLines[0].childLines[0].addChild(50, 90, 4, true);
-    this.pendulumLines[0].childLines[0].childLines[0].addChild(50, 180, 5, true);
-    this.pendulumLines[0].childLines[0].childLines[0].addChild(50, 270, 6, true);
+    this.pendulumLines.push(new PendulumLine({x: 400, y: 400}, 100, 0, 1));
+    this.pendulumLines[0].addChild(50, 0 , -5);
+    this.pendulumLines[0].childLines[0].addChild(25, 0, 16, true);
     this.addPendulumLines(this.pendulumLines);
 
-    createjs.Ticker.framerate = 60;
+    this.backgroundImageData = this.backgroundCtx.createImageData(this.width, this.height);
+    this.backgroundData32 = new Uint32Array(this.backgroundImageData.data.buffer);
+
+    createjs.Ticker.framerate = 120;
     this.animationTick = createjs.Ticker.on('tick', () => {
       this.animate();
     });
@@ -55,6 +58,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   animate() {
     this.calculateLines(this.pendulumLines);
+    this.backgroundCtx.putImageData(this.backgroundImageData, 0, 0);
     this.mainStage.update();
   }
 
@@ -72,19 +76,45 @@ export class AppComponent implements OnInit, OnDestroy {
         lines[a].start.y + lines[a].length * Math.sin(PendulumLine.toR(lines[a].angle));
 
       if (lines[a].draw) {
-        const shape = new createjs.Shape();
-        shape.graphics.setStrokeStyle(1);
-        shape.graphics.beginStroke('rgba(0,0,0,1)');
-        shape.graphics.moveTo(lines[a].prevEnd.x, lines[a].prevEnd.y);
-        shape.graphics.lineTo(lines[a].end.x, lines[a].end.y);
-        shape.graphics.endStroke();
-        this.mainStage.addChild(shape);
+        const points: number[] = this.getLinePoints(
+          Math.round(lines[a].prevEnd.x),
+          Math.round(lines[a].prevEnd.y),
+          Math.round(lines[a].end.x),
+          Math.round(lines[a].end.y)
+        );
+        for (let b = 0; b < points.length; b++) {
+          this.backgroundData32[points[b]] = 0XFF000000;
+        }
       }
 
       if (lines[a].childLines) {
         this.calculateLines(lines[a].childLines);
       }
     }
+  }
+
+  getLinePoints(x0, y0, x1, y1): number[] {
+    const points: number[] = [];
+    const dx = Math.abs(x1 - x0);
+    const dy = Math.abs(y1 - y0);
+    const sx = (x0 < x1) ? 1 : -1;
+    const sy = (y0 < y1) ? 1 : -1;
+    let err = dx - dy;
+
+    while (true) {
+      points.push(y0 * this.width + x0);
+      if ((x0 === x1) && (y0 === y1)) {
+        break;
+      }
+      const e2 = 2 * err;
+      if (e2 > -dy) {
+        err -= dy; x0  += sx;
+      }
+      if (e2 < dx) {
+        err += dx; y0  += sy;
+      }
+    }
+    return points;
   }
 
   addPendulumLines(lines: PendulumLine[]) {
